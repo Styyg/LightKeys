@@ -1,5 +1,6 @@
 #import time
 import mido
+import json
 
 from rpi_ws281x import *
 
@@ -33,12 +34,25 @@ tab_leds = (0,  3,  4,  7,  9,  10, 13, 14, 17, 19, 20, 23)
 #position des notes noires (en partant du la)
 noire = {1, 4, 6, 9, 11}
 
+with open('/home/styg/pianoLeds/leds_settings.json') as json_data:
+    leds_settings = json.load(json_data)
+
+print(leds_settings["color"])
+
+# rouge = int(leds_settings["color"][1:3], 16)
+# vert = int(leds_settings["color"][3:5], 16)
+# bleu = int(leds_settings["color"][5:7], 16)
+rouge = 255
+vert = 136
+bleu = 0
+blanc = 0
+
 # LED strip configuration:
 LED_COUNT      = 177     # Number of LED pixels.
 LED_PIN        = 18      # GPIO pin connected to the pixels (18 uses PWM!).
 LED_FREQ_HZ    = 800000  # LED signal frequency in hertz (usually 800khz)
 LED_DMA        = 10      # DMA channel to use for generating signal (try 10)
-LED_BRIGHTNESS = 100     # Set to 0 for darkest and 255 for brightest
+LED_BRIGHTNESS = int(leds_settings["brightness"]) # Set to 0 for darkest and 255 for brightest
 LED_INVERT     = False   # True to invert the signal (when using NPN transistor level shift)
 LED_CHANNEL    = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
 LED_STRIP      = ws.SK6812_STRIP_RGBW
@@ -58,10 +72,6 @@ for port in ports:
 		except:
 			print ("Failed to set "+port+" as inport")
 
-rouge = 255
-vert = 80
-bleu = 0
-blanc = 0
 
 # Color(G,R,B)
 couleur = Color(vert, rouge, bleu, blanc)
@@ -88,7 +98,7 @@ while True:
 
 		#Récupération de la vélocité
 		if "note_off" in str(msg):
-			velocity = 0
+				velocity = 0
 		else:
 			velocity = int(find_between(str(msg), "velocity=", " "))
 
