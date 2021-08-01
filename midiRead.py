@@ -11,13 +11,10 @@ def find_between(s, start, end):
         return False
 
 def note_on(led, blanche, vel):
-   # strip.setPixelColor(led, Color(int(vert * (vel/127)), int(rouge * (vel/127)), int(bleu * (vel/127)), int(blanc * (vel/127))))
-   # strip.setPixelColor(led+1, Color(int(vert * (vel/127)), int(rouge * (vel/127)), int(bleu * (vel/127)), int(blanc * (vel/127))))
     strip.setPixelColor(led, couleur)
     strip.setPixelColor(led+1, couleur)
 
     if(blanche):
-	    #strip.setPixelColor(led+2, Color(int(vert * (vel/127)), int(rouge * (vel/127)), int(bleu * (vel/127)), int(blanc * (vel/127))))
 	    strip.setPixelColor(led+2, couleur)
 
 def note_off(led, blanche):
@@ -29,7 +26,6 @@ def note_off(led, blanche):
 
 #Led la plus à gauche à allumer pour la première octave (en partant du la le plus grave)
 tab_leds = (0,  3,  4,  7,  9,  10, 13, 14, 17, 19, 20, 23)
-	    #24, 27, 28, 31, 33, 34, 37, 38, 41, 43, 44, 47)
 
 #position des notes noires (en partant du la)
 noire = {1, 4, 6, 9, 11}
@@ -39,12 +35,12 @@ with open('/home/styg/pianoLeds/leds_settings.json') as json_data:
 
 print(leds_settings["color"])
 
-# rouge = int(leds_settings["color"][1:3], 16)
-# vert = int(leds_settings["color"][3:5], 16)
-# bleu = int(leds_settings["color"][5:7], 16)
-rouge = 255
-vert = 136
-bleu = 0
+rouge = int(leds_settings["color"][1:3], 16)
+vert = int(leds_settings["color"][3:5], 16)
+bleu = int(leds_settings["color"][5:7], 16)
+# rouge = 255
+# vert = 136
+# bleu = 0
 blanc = 0
 
 # LED strip configuration:
@@ -73,11 +69,9 @@ for port in ports:
 			print ("Failed to set "+port+" as inport")
 
 
-# Color(G,R,B)
+# Color(G,R,B)   aucune idée de pourquoi c'est GRB au lieu de RGB, peut-être parce que les leds sont SK6812 au lieu de WS2812
 couleur = Color(vert, rouge, bleu, blanc)
-#couleur_attenuee =  Color(int(vert/10), int(rouge/10), int(bleu/10), int(blanc/10))
-couleur_fond = Color(3, 3, 3, 3)
-#couleur_fond = Color(0, 0, 0, 0)
+couleur_fond = Color(0, 0, 0, 0)
 
 for i in range(0, LED_COUNT):
 	strip.setPixelColor(i, couleur_fond)
@@ -102,7 +96,7 @@ while True:
 		else:
 			velocity = int(find_between(str(msg), "velocity=", " "))
 
-		#ajout d'un offset pour ajuster l'alluamge des leds par rapport aux notes
+		#ajout d'un offset pour ajuster l'allumage des leds par rapport aux notes
 		if(note > 93):
 			led_offset = -2
 		elif(note > 57):
