@@ -3,6 +3,7 @@ async function init() {
     color: "#FF0000",
     brightness: 100,
   };
+
   const inputRGB = document.getElementById("colorRGB");
   const brightness = document.getElementById("brightness");
   const form_settings = document.getElementById("form-settings");
@@ -14,6 +15,7 @@ async function init() {
   form_settings.style.display = "none";
   const response = await fetch("./leds_settings.json");
   const data = await response.json();
+  console.log(data);
   inputRGB.value = data.colorRGB;
   brightness.value = data.brightness;
   form_settings.style.display = "";

@@ -9,7 +9,7 @@ var urlencodedParser = bodyParser.urlencoded({ extended: false });
 app.use(express.static("public"));
 
 app.get("/index.htm", function (req, res) {
-  res.sendFile(__dirname + "/" + "index.htm");
+  res.sendFile(__dirname + "/index.htm");
 });
 
 app.post("/process_post", urlencodedParser, function (req, res) {
@@ -18,10 +18,15 @@ app.post("/process_post", urlencodedParser, function (req, res) {
     colorRGB: req.body.colorRGB,
     brightness: req.body.brightness,
   };
-  fs.writeFileSync("public/leds_settings.json", JSON.stringify(response));
+  fs.writeFileSync(
+    __dirname + "/public/leds_settings.json",
+    JSON.stringify(response)
+  );
   res.redirect("back");
 });
 
 var server = app.listen(8081, function () {
-  console.log("App listening at http://localhost:8081");
+  var port = server.address().port;
+
+  console.log("App listening at http://localhost:%s", port);
 });
