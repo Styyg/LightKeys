@@ -19,7 +19,7 @@ app.post("/process_post", urlencodedParser, function (req, res) {
     brightness: req.body.brightness,
   };
   fs.writeFileSync(
-    __dirname + "/public/leds_settings.json",
+    __dirname + "/public/settings.json",
     JSON.stringify(response)
   );
   res.redirect("back");

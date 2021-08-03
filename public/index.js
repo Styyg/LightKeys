@@ -12,13 +12,13 @@ async function init() {
     leds_settings.color = e.target.value;
   });
 
-  form_settings.style.display = "none";
-  const response = await fetch("./leds_settings.json");
+  // form_settings.style.display = "none";
+  const response = await fetch("./settings.json");
   const data = await response.json();
   console.log(data);
   inputRGB.value = data.colorRGB;
   brightness.value = data.brightness;
-  form_settings.style.display = "";
+  // form_settings.style.display = "";
 }
 
 init();
