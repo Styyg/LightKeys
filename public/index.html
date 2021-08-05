@@ -4,13 +4,21 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interface couleur</title>
+    <title>Paramètres leds</title>
 
 </head>
 <body>
     <form id="form-settings" action="/process_post" method="POST">
-        <input id="colorRGB" type="color" name="colorRGB"></input>
-        <input id="brightness" type="range" min="0" max="255" name="brightness"></input>
+        <div>
+            <input id="colorRGB" type="color" name="colorRGB" onchange="showValueChange('colorRGB', 'span_RGB')"></input> <span id="span_RGB"></span>
+            <span id="rgb-text"></span>
+        
+            <p>Blanc : </p>
+            <input id="colorW" type="range" min="0" max="255" name="colorW" oninput="showValueChange('colorW', 'span_W')"></input> <span id="span_W"></span>
+
+            <p>Luminosité : </p>
+            <input id="brightness" type="range" min="0" max="255" name="brightness" oninput="showValueChange('brightness', 'span_brightness')"></input> <span id="span_brightness"></span>
+        </div>
         
         <input id="btn-validate" type ="submit" value ="Valider">
     </form>

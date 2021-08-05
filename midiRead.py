@@ -2,6 +2,7 @@ import time
 import mido
 import json
 from os import stat
+import os
 
 from rpi_ws281x import *
 
@@ -11,12 +12,12 @@ def find_between(s, start, end):
     except:
         return False
 
-def note_on(led, blanche, vel):
-    strip.setPixelColor(led, couleur)
-    strip.setPixelColor(led+1, couleur)
+def note_on(led, blanche):
+	strip.setPixelColor(led, couleur)
+	strip.setPixelColor(led+1, couleur)
 
-    if(blanche):
-	    strip.setPixelColor(led+2, couleur)
+	if(blanche):
+		strip.setPixelColor(led+2, couleur)
 
 def note_off(led, blanche):
     strip.setPixelColor(led, couleur_fond)
@@ -28,17 +29,17 @@ def note_off(led, blanche):
 def get_settingsJSON():
 	try:
 		# Lecture du fichier settings.json
-		with open('./public/settings.json') as json_data:
+		with open(dir_path + '/public/settings.json') as json_data:
 			settings = json.load(json_data)
 		rouge = int(settings["colorRGB"][1:3], 16)
 		vert = int(settings["colorRGB"][3:5], 16)
 		bleu = int(settings["colorRGB"][5:7], 16)
-		blanc = 0
+		blanc = int(settings["colorW"])
 		brightness = int(settings["brightness"]) # Set to 0 for darkest and 255 for brightest
-	except:
-		print("Erreur sur le fichier settings : application des valeurs color et brightness par défaut")
+	except Exception as e:
+		print("Erreur sur le fichier settings :", e)
 		rouge = 255
-		vert = 136
+		vert = 0
 		bleu = 0
 		blanc = 0
 		brightness = 100 # Set to 0 for darkest and 255 for brightest
@@ -50,13 +51,26 @@ def colorWipe(strip, color):
         strip.setPixelColor(i, color)
         strip.show()
 
+def colorWipeFromCenter(strip, color):
+	for i in range(int(strip.numPixels()/2) +1):
+		strip.setPixelColor(int(strip.numPixels()/2) + i, color)
+		strip.setPixelColor(int(strip.numPixels()/2) - i, color)
+		strip.show()
+
+def colorWipeFromSides(strip, color):
+	for i in range(int(strip.numPixels()/2) +1):
+		strip.setPixelColor(i, color)
+		strip.setPixelColor(strip.numPixels() - i, color)
+		strip.show()
+
 
 #Led la plus à gauche à allumer pour la première octave (en partant du la le plus grave)
 tab_leds = (0,  3,  4,  7,  9,  10, 13, 14, 17, 19, 20, 23)
 #position des notes noires (en partant du la)
 noire = {1, 4, 6, 9, 11}
 
-date_modif = stat("./public/settings.json")[8]
+dir_path = os.path.dirname(os.path.realpath(__file__))
+date_modif = stat(dir_path + "/public/settings.json")[8]
 
 
 # LED strip configuration:
@@ -73,44 +87,47 @@ rouge, vert, bleu, blanc, LED_BRIGHTNESS = get_settingsJSON()
 strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL, LED_STRIP)
 strip.begin()
 
-# Ouverture du port MIDI 
-ports = mido.get_input_names()
-for port in ports:
-	if "Through" not in port and "RPi" not in port and "RtMidOut" not in port:
-		try:
-			inport =  mido.open_input(port)
-			# print("Inport set to "+port)
-		except:
-			print ("Failed to set "+port+" as inport")
+# Ouverture du port MIDI par l'interface USB
+try:
+	inport = mido.open_input('USB MIDI Interface:USB MIDI Interface MIDI 1 20:0')
+except Exception as e:
+	print(e)
 
 
 # Color(G,R,B)   aucune idée de pourquoi c'est GRB au lieu de RGB, peut-être parce que les leds sont SK6812 au lieu de WS2812
 couleur = Color(vert, rouge, bleu, blanc)
 couleur_fond = Color(0, 0, 0, 0)
 
-strip.setBrightness(100)
-colorWipe(strip, Color(255,0,0,0)) 
-colorWipe(strip, Color(0,0,0,0)) 
+colorWipeFromCenter(strip, couleur) 
+colorWipeFromSides(strip, Color(0,0,0,0)) 
 
 print("En attente d'entrée Midi")
 try:
 	while True:
-		if(date_modif != stat("./public/settings.json")[8]):
-			date_modif = stat("./public/settings.json")[8]
+		if(date_modif != stat(dir_path + "/public/settings.json")[8]):
+			date_modif = stat(dir_path + "/public/settings.json")[8]
 			# print(date_modif)
-			# time.sleep(0.05)
+			time.sleep(0.05)
 			rouge, vert, bleu, blanc, LED_BRIGHTNESS = get_settingsJSON()
 			couleur = Color(vert, rouge, bleu, blanc)
 			strip.setBrightness(LED_BRIGHTNESS)
 			
-			colorWipe(strip, couleur)
-			colorWipe(strip, couleur_fond)
+			colorWipeFromCenter(strip, couleur) 
+			colorWipeFromSides(strip, couleur_fond) 
 
 		for msg in inport.iter_pending():
+			#print(msg)
+
 			#récupération de la valeur de la note (commence à 21)
 			note = int(find_between(str(msg), "note=", " "))
-			#print(msg)
 			#print(note)
+
+			#Récupération de la vélocité
+			if "note_off" in str(msg):
+				velocity = 0
+			else:
+				velocity = int(find_between(str(msg), "velocity=", " "))
+
 
 			#numéro de la note au sein d'une octave (la: 0 laB: 11)
 			num_note = (note-21)%12
@@ -118,11 +135,6 @@ try:
 			#numéro de l'octave, pour décaler l'affichage des leds
 			octave = int((note-21) /12)
 
-			#Récupération de la vélocité
-			if "note_off" in str(msg):
-					velocity = 0
-			else:
-				velocity = int(find_between(str(msg), "velocity=", " "))
 
 			#ajout d'un offset pour ajuster l'allumage des leds par rapport aux notes
 			if(note > 93):
@@ -131,7 +143,6 @@ try:
 				led_offset = -1
 			else:
 				led_offset = 0
-
 			#exception sur certaines notes
 			if(note == 84):
 				led_offset -= 1
@@ -146,13 +157,20 @@ try:
 
 			#print("note", note, "num_note", num_note, "octave", octave, "num leds", num_led)
 
+			# Allume ou éteint lesles leds
 			if(int(velocity) > 0 and int(note) > 0):
-				note_on(tab_leds[num_note] + octave*24 + led_offset, bBlanche, velocity)
+				note_on(tab_leds[num_note] + octave*24 + led_offset, bBlanche)
 			elif(int(velocity) == 0 and int(note) > 0):
 				note_off(tab_leds[num_note] + octave*24 + led_offset, bBlanche)
 		strip.show()
-except: 
-	strip.setBrightness(100)
-	colorWipe(strip, Color(0,255,0,0)) 
-	colorWipe(strip, Color(0,0,0,0))
+
+except Exception as e: 
+	# En cas d'erreur, le bandeau entier s'affiche en rouge
+	print("Erreur lors de la lecture MIDI :", e)
+	strip.setBrightness(50)
+	for i in range(strip.numPixels()):
+		strip.setPixelColor(i, Color(0,255,0,0))
+	strip.show()
+	time.sleep(2)
+	colorWipeFromCenter(strip, Color(0,0,0,0))
 

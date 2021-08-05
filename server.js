@@ -8,14 +8,15 @@ var urlencodedParser = bodyParser.urlencoded({ extended: false });
 
 app.use(express.static("public"));
 
-app.get("/index.htm", function (req, res) {
-  res.sendFile(__dirname + "/index.htm");
+app.get("/", function (req, res) {
+  res.sendFile('index.html');
 });
 
 app.post("/process_post", urlencodedParser, function (req, res) {
   // Prepare output in JSON format
   response = {
     colorRGB: req.body.colorRGB,
+    colorW: req.body.colorW,
     brightness: req.body.brightness,
   };
   fs.writeFileSync(
