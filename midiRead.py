@@ -2,6 +2,8 @@ import time
 import mido
 import json
 import os
+import traceback
+# from pathlib import Path
 from os import stat
 from rpi_ws281x import *
 from enum import Enum
@@ -58,25 +60,40 @@ def note_off(led, blanche):
     if(blanche):
 	    strip.setPixelColor(led+2, colorOFF)
 
-def get_settingsJSON():
+def read_settingsJSON(json_file_name):
 	try:
 		# Lecture du fichier settings.json
-		with open(dir_path + '/public/settings.json') as json_data:
+		with open(json_file_name, "r") as json_data:
 			settings = json.load(json_data)
-		rouge = int(settings["colorRGB"][1:3], 16)
-		vert = int(settings["colorRGB"][3:5], 16)
-		bleu = int(settings["colorRGB"][5:7], 16)
-		blanc = int(settings["colorW"])
-		brightness = int(settings["brightness"]) # Set to 0 for darkest and 255 for brightest
+		return settings
 	except Exception as e:
-		print("Erreur sur le fichier settings :", e)
-		rouge = 255
-		vert = 0
-		bleu = 0
-		blanc = 0
-		brightness = 100 # Set to 0 for darkest and 255 for brightest
-	
-	return rouge, vert, bleu, blanc, brightness
+		print("read_settingsJSON :", e)
+		return False
+
+def get_settingsJSON(json_file_name):
+	settings = read_settingsJSON(json_file_name)
+	if(settings):
+		try:
+			rouge = int(settings["colorRGB"][1:3], 16)
+			vert = int(settings["colorRGB"][3:5], 16)
+			bleu = int(settings["colorRGB"][5:7], 16)
+			blanc = int(settings["colorW"])
+			brightness = int(settings["brightness"]) 
+		except Exception as e:
+			print("get_settingsJSON :", e)
+			rouge = 255
+			vert = 0
+			bleu = 0
+			blanc = 0
+			brightness = 100
+
+		return rouge, vert, bleu, blanc, brightness
+	else:
+		return 255, 0, 0, 0, 100
+
+def write_settingsJSON(file_name, data):
+	with open(file_name, "w") as json_file:
+		json.dump(data, json_file)
 
 def colorWipe(strip, color):
     for i in range(strip.numPixels()):
@@ -129,6 +146,13 @@ def previewColorOFF(strip, num_led):
 		strip.setPixelColor(i, wheel(i))
 	strip.show()
 
+def getDefaultSettingFileData():
+	data = {
+		"colorRGB": "#FF0000",
+		"colorW": "0",
+		"brightness": "100"
+	}
+	return data
 
 #Led la plus à gauche à allumer pour la première octave (en partant du la le plus grave)
 tab_leds = (0,  3,  4,  7,  9,  10, 13, 14, 17, 19, 20, 23)
@@ -136,7 +160,8 @@ tab_leds = (0,  3,  4,  7,  9,  10, 13, 14, 17, 19, 20, 23)
 noire = {1, 4, 6, 9, 11}
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-date_modif = stat(dir_path + "/public/settings.json")[8]
+json_file_name = dir_path + "/public/settings.json"
+date_modif = stat(json_file_name)[8]
 
 
 # LED strip configuration:
@@ -148,7 +173,15 @@ LED_INVERT     = False   # True to invert the signal (when using NPN transistor 
 LED_CHANNEL    = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
 LED_STRIP      = ws.SK6812_STRIP_RGBW
 
-rouge, vert, bleu, blanc, LED_BRIGHTNESS = get_settingsJSON()
+
+rouge, vert, bleu, blanc, LED_BRIGHTNESS = get_settingsJSON(json_file_name)
+settings = read_settingsJSON(json_file_name)
+if not(settings):
+	settings = getDefaultSettingFileData()
+
+# Color(G,R,B)   aucune idée de pourquoi c'est GRB au lieu de RGB, peut-être parce que les leds sont SK6812 au lieu de WS2812
+colorON = Color(vert, rouge, bleu, blanc)
+colorOFF = Color(0, 0, 0, 0)
 
 strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL, LED_STRIP)
 strip.begin()
@@ -157,26 +190,22 @@ strip.begin()
 try:
 	inport = mido.open_input('USB MIDI Interface:USB MIDI Interface MIDI 1 20:0')
 except Exception as e:
-	print("Erreur port MIDI :", e)
-
-# Color(G,R,B)   aucune idée de pourquoi c'est GRB au lieu de RGB, peut-être parce que les leds sont SK6812 au lieu de WS2812
-colorON = Color(vert, rouge, bleu, blanc)
-colorOFF = Color(0, 0, 0, 0)
+	print(traceback.format_exc())
 
 colorWipeFromCenter(strip, colorON) 
 colorWipeFromSides(strip, Color(0,0,0,0)) 
 
-
 mode = Mode.PLAY.value
-print("En attente d'entrée MIDI :")
+# print("En attente d'entrée MIDI :")
 try:
 	while True:
 		# Détecte les changements du fichier settings.json
-		if(date_modif != stat(dir_path + "/public/settings.json")[8]):
-			date_modif = stat(dir_path + "/public/settings.json")[8]
-			# print(date_modif)
+		if(date_modif != stat(json_file_name)[8]):
+			date_modif = stat(json_file_name)[8]
+			# print("date_modif :", date_modif)
 			time.sleep(0.05)
-			rouge, vert, bleu, blanc, LED_BRIGHTNESS = get_settingsJSON()
+			# rouge, vert, bleu, blanc, LED_BRIGHTNESS = read_settingsJSON(json_file_name)
+			rouge, vert, bleu, blanc, LED_BRIGHTNESS = get_settingsJSON(json_file_name)
 			colorON = Color(vert, rouge, bleu, blanc)
 			strip.setBrightness(LED_BRIGHTNESS)
 			
@@ -225,6 +254,14 @@ try:
 				elif(control == 66 and value == 127 and mode != Mode.PLAY.value):
 					if(mode == Mode.COLOR.value): 
 						colorON = colorON_temp
+						bleu = colorON & 255
+						rouge = (colorON >> 8) & 255
+						vert = (colorON >> 16) & 255
+						settings["colorRGB"] = "#" + '{:02x}'.format(rouge, 'x') + '{:02x}'.format(vert, 'x') + '{:02x}'.format(bleu, 'x')
+						settings["colorW"] = blanc
+						settings["brightness"] = LED_BRIGHTNESS 
+						write_settingsJSON(json_file_name, settings)
+						date_modif = stat(json_file_name)[8]
 
 					elif(mode == Mode.BRIGHTNESS.value):
 						LED_BRIGHTNESS = brightness_temp
@@ -249,9 +286,9 @@ try:
 
 		strip.show()
 
-except Exception as e: 
+except: 
 	# En cas d'erreur, le bandeau entier s'affiche en rouge
-	print("Erreur lecture MIDI :", e)
+	print(traceback.format_exc())
 	strip.setBrightness(50)
 	for i in range(strip.numPixels()):
 		strip.setPixelColor(i, Color(0,255,0,0))
