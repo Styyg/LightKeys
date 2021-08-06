@@ -10,8 +10,9 @@ from enum import Enum
 
 class Mode(Enum):
 	PLAY = 0
-	COLOR = 1
-	BRIGHTNESS = 2
+	COLOR_RGB = 1
+	COLOR_W = 2
+	BRIGHTNESS = 3
 
 def find_between(s, start, end):
     try:
@@ -46,7 +47,10 @@ def get_MIDI():
 	#numéro de la led à allumer, liée à la note jouée (commence à 0)
 	num_led = tab_leds[num_note] + octave*24 + led_offset
 
-	return note, vel, num_note, octave, led_offset, num_led
+	control = int(find_between(str(msg), "control=", " "))
+	value = int(find_between(str(msg), "value=", " "))
+
+	return note, vel, num_note, octave, led_offset, num_led, control, value
 
 def note_on(led, blanche):
 	strip.setPixelColor(led, colorON)
@@ -136,14 +140,33 @@ def rainbowFromCenter(strip):
 		strip.setPixelColor(int(strip.numPixels()/2) - i, wheel(int(strip.numPixels()/2) - i))
 		strip.show()
 
-def previewColor(strip, num_led, color):
+def previewColorON(strip, color):
 	for i in range(strip.numPixels()):
 		strip.setPixelColor(i, color)
 	strip.show()
 
-def previewColorOFF(strip, num_led):
+def previewColorOFF(strip):
 	for i in range(strip.numPixels()):
 		strip.setPixelColor(i, wheel(i))
+	strip.show()
+
+def selectionModeWhite(strip, color):
+	bleu = color & 255
+	rouge = (color >> 8) & 255
+	vert = (color >> 16) & 255
+	for i in range(strip.numPixels()):
+		strip.setPixelColor(i, Color(vert, rouge, bleu, int(i * (255/strip.numPixels())) ))
+		strip.show()
+
+
+def previewColorW_ON(strip, color):
+	for i in range(strip.numPixels()):
+		strip.setPixelColor(i, color)
+	strip.show()
+	
+def previewColorW_OFF(strip):
+	for i in range(strip.numPixels()):
+		strip.setPixelColor(i, Color(vert, rouge, bleu, int(i * (255/strip.numPixels()))))
 	strip.show()
 
 def getDefaultSettingFileData():
@@ -153,6 +176,18 @@ def getDefaultSettingFileData():
 		"brightness": "100"
 	}
 	return data
+
+def changeMode(mode):
+	if(mode == Mode.PLAY.value):
+		colorWipeFromCenter(strip, colorOFF)
+	elif(mode == Mode.COLOR_RGB.value):
+		rainbowFromCenter(strip)
+	elif(mode == Mode.COLOR_W.value):
+		selectionModeWhite(strip, colorON)
+	elif(mode == Mode.BRIGHTNESS.value):
+		colorWipeFromCenter(strip, colorON)
+	# print("mode :", Mode(mode).name)
+	return mode
 
 #Led la plus à gauche à allumer pour la première octave (en partant du la le plus grave)
 tab_leds = (0,  3,  4,  7,  9,  10, 13, 14, 17, 19, 20, 23)
@@ -214,75 +249,109 @@ try:
 
 		for msg in inport.iter_pending():
 			# print(msg)
-			note, velocity, num_note, octave, led_offset, num_led = get_MIDI()
+			note, velocity, num_note, octave, led_offset, num_led, control, value = get_MIDI()
 
-			# Mode PLAY
-			if("note" in str(msg) and mode == Mode.PLAY.value):
+			# Mode PLAY : Jouer au piano et les leds s'allument
+			if(mode == Mode.PLAY.value):
 				#print("note", note, "num_note", num_note, "octave", octave, "num leds", num_led)
-				if(num_note in noire):
-					bBlanche = False
-				else:
-					bBlanche = True
+				if("note" in str(msg)):
+					if(num_note in noire):
+						bBlanche = False
+					else:
+						bBlanche = True
 
-				# Allume ou éteint les leds
-				if(int(velocity) > 0 and int(note) > 0):
-					note_on(num_led, bBlanche)
-				elif(int(velocity) == 0 and int(note) > 0):
-					note_off(num_led, bBlanche)
+					# Allume ou éteint les leds
+					if(int(velocity) > 0 and int(note) > 0):
+						note_on(num_led, bBlanche)
+					elif(int(velocity) == 0 and int(note) > 0):
+						note_off(num_led, bBlanche)
+				
+				elif(control == 67 and value == 127):
+					mode = changeMode(Mode.COLOR_RGB.value)
 
-			# Mode SETTING
-			else:
-				control = int(find_between(str(msg), "control=", " "))
-				value = int(find_between(str(msg), "value=", " "))
+				elif(control == 66 and value == 127):
+					mode = changeMode(Mode.BRIGHTNESS.value)
 
-				# PEDALE DE GAUCHE : Changement de mode (COLOR ou BRIGHTNESS)
-				if(control == 67 and value == 127):
-					mode = (mode +1) %3
-
-					if(mode == Mode.PLAY.value):
-						colorWipeFromCenter(strip, colorOFF)
-					elif(mode == Mode.COLOR.value): 
-						rainbowFromCenter(strip)
-						colorON_temp = colorON
-					elif(mode == Mode.BRIGHTNESS.value):
-						colorWipeFromCenter(strip, colorON)
-						brightness_temp = strip.getBrightness()
-
-					# print("mode :", Mode(mode).name)
-
-				# PEDALE DU MILIEU : Validation du mode
-				elif(control == 66 and value == 127 and mode != Mode.PLAY.value):
-					if(mode == Mode.COLOR.value): 
-						colorON = colorON_temp
-						bleu = colorON & 255
-						rouge = (colorON >> 8) & 255
-						vert = (colorON >> 16) & 255
-						settings["colorRGB"] = "#" + '{:02x}'.format(rouge, 'x') + '{:02x}'.format(vert, 'x') + '{:02x}'.format(bleu, 'x')
-						settings["colorW"] = blanc
-						settings["brightness"] = LED_BRIGHTNESS 
-						write_settingsJSON(json_file_name, settings)
-						date_modif = stat(json_file_name)[8]
-
-					elif(mode == Mode.BRIGHTNESS.value):
-						LED_BRIGHTNESS = brightness_temp
-						strip.setBrightness(LED_BRIGHTNESS)
-
-					colorWipeFromCenter(strip, colorOFF)
-					mode = Mode.PLAY.value
+			# Mode COLOR_RGB : Les leds s'allument en arc en ciel, on peut choisir la couleur en appuyant sur une note
+			elif(mode == Mode.COLOR_RGB.value):
 
 				# NOTES DU PIANO : Choix des paramètres
 				if "note_on" in str(msg):
-					if(mode == Mode.COLOR.value):
-						colorON_temp = wheel(num_led)
-						previewColor(strip, num_led, colorON_temp)
-
-					elif(mode == Mode.BRIGHTNESS.value):
-						brightness_temp = int((note-21) * (255/87))
-						strip.setBrightness(brightness_temp)
-
+					colorON_temp = wheel(num_led)
+					previewColorON(strip, colorON_temp)
 				elif "note_off" in str(msg):
-					if(mode == Mode.COLOR.value):
-						previewColorOFF(strip, num_led)
+					previewColorOFF(strip)
+
+				# PEDALE DE GAUCHE : Changement de mode vers COLOR_W sans changer les paramètres
+				elif(control == 67 and value == 127):
+					mode = changeMode(Mode.COLOR_W.value)
+					
+				# PEDALE DU MILIEU : Changement de mode vers BRIGHTNESS sans changer les paramètres
+				elif(control == 66 and value == 127):
+					mode = changeMode(Mode.BRIGHTNESS.value)
+
+				# PEDALE DE DROITE : Validation des paramètres
+				elif(control == 64 and value == 127):
+					colorON = colorON_temp
+					bleu = colorON & 255
+					rouge = (colorON >> 8) & 255
+					vert = (colorON >> 16) & 255
+					settings["colorRGB"] = "#" + '{:02x}'.format(rouge, 'x') + '{:02x}'.format(vert, 'x') + '{:02x}'.format(bleu, 'x')
+					write_settingsJSON(json_file_name, settings)
+					date_modif = stat(json_file_name)[8]
+					mode = changeMode(Mode.PLAY.value)
+
+			# Mode COLOR_W : Les leds s'allument avec la couleur choisie et différents degrés de blanc, on peut choisir la couleur en appuyant sur les notes
+			elif(mode == Mode.COLOR_W.value):
+
+				# NOTES DU PIANO : Choix des paramètres
+				if "note_on" in str(msg):
+					blanc_temp = int((note-21) * (255/87))
+					previewColorW_ON(strip, Color(vert, rouge, bleu, blanc_temp))
+				elif "note_off" in str(msg):
+					previewColorW_OFF(strip)
+
+				# PEDALE DE GAUCHE : Changement de mode vers PLAY sans changer les paramètres
+				elif(control == 67 and value == 127):
+					mode = changeMode(Mode.PLAY.value)
+					
+				# PEDALE DU MILIEU : Changement de mode vers BRIGHTNESS sans changer les paramètres
+				elif(control == 66 and value == 127):
+					mode = changeMode(Mode.BRIGHTNESS.value)
+
+				# PEDALE DE DROITE : Validation des paramètres
+				elif(control == 64 and value == 127):
+					blanc = blanc_temp
+					colorON = Color(vert, rouge, bleu, blanc)
+					settings["colorW"] = blanc
+					write_settingsJSON(json_file_name, settings)
+					date_modif = stat(json_file_name)[8]
+					mode = changeMode(Mode.PLAY.value)
+
+			# Mode BRIGHTNESS : Les leds s'allument avec la couleur choisie, on peut choisir la luminosité en appuyant sur les notes
+			elif(mode == Mode.BRIGHTNESS.value):
+
+				# NOTES DU PIANO : Choix des paramètres
+				if "note_on" in str(msg):
+					brightness_temp = int((note-21) * (255/87))
+					strip.setBrightness(brightness_temp)
+
+				# PEDALE DE GAUCHE : Changement de mode vers COLOR_RGB sans changer les paramètres
+				elif(control == 67 and value == 127):
+					mode = changeMode(Mode.COLOR_RGB.value)
+					
+				# PEDALE DU MILIEU : Changement de mode vers PLAY sans changer les paramètres
+				elif(control == 66 and value == 127):
+					mode = changeMode(Mode.PLAY.value)
+
+				# PEDALE DE DROITE : Validation des paramètres
+				elif(control == 64 and value == 127):
+					LED_BRIGHTNESS = brightness_temp
+					strip.setBrightness(LED_BRIGHTNESS)
+					settings["brightness"] = LED_BRIGHTNESS
+					write_settingsJSON(json_file_name, settings)
+					date_modif = stat(json_file_name)[8]
+					mode = changeMode(Mode.PLAY.value)
 
 		strip.show()
 
