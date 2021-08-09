@@ -179,7 +179,7 @@ def getDefaultSettingFileData():
 
 def changeMode(mode):
 	if(mode == Mode.PLAY.value):
-		colorWipeFromCenter(strip, colorOFF)
+		colorWipeFromSides(strip, colorOFF)
 	elif(mode == Mode.COLOR_RGB.value):
 		rainbowFromCenter(strip)
 	elif(mode == Mode.COLOR_W.value):
@@ -229,7 +229,7 @@ except Exception as e:
 
 colorWipeFromCenter(strip, colorON) 
 colorWipeFromSides(strip, Color(0,0,0,0)) 
-
+	
 mode = Mode.PLAY.value
 # print("En attente d'entrée MIDI :")
 try:
@@ -266,11 +266,13 @@ try:
 					elif(int(velocity) == 0 and int(note) > 0):
 						note_off(num_led, bBlanche)
 				
+				# PEDALE DE GAUCHE : Changement de mode vers COLOR_RGB
 				elif(control == 67 and value == 127):
 					mode = changeMode(Mode.COLOR_RGB.value)
 
+				# PEDALE DU MILIEU : Nettoie le bandeau en éteignant tout
 				elif(control == 66 and value == 127):
-					mode = changeMode(Mode.BRIGHTNESS.value)
+					colorWipeFromSides(strip, colorOFF)
 
 			# Mode COLOR_RGB : Les leds s'allument en arc en ciel, on peut choisir la couleur en appuyant sur une note
 			elif(mode == Mode.COLOR_RGB.value):
@@ -282,13 +284,13 @@ try:
 				elif "note_off" in str(msg):
 					previewColorOFF(strip)
 
-				# PEDALE DE GAUCHE : Changement de mode vers COLOR_W sans changer les paramètres
+				# PEDALE DE GAUCHE : Changement de mode vers COLOR_W
 				elif(control == 67 and value == 127):
 					mode = changeMode(Mode.COLOR_W.value)
 					
-				# PEDALE DU MILIEU : Changement de mode vers BRIGHTNESS sans changer les paramètres
+				# PEDALE DU MILIEU : Changement de mode vers PLAY
 				elif(control == 66 and value == 127):
-					mode = changeMode(Mode.BRIGHTNESS.value)
+					mode = changeMode(Mode.PLAY.value)
 
 				# PEDALE DE DROITE : Validation des paramètres
 				elif(control == 64 and value == 127):
@@ -311,13 +313,13 @@ try:
 				elif "note_off" in str(msg):
 					previewColorW_OFF(strip)
 
-				# PEDALE DE GAUCHE : Changement de mode vers PLAY sans changer les paramètres
+				# PEDALE DE GAUCHE : Changement de mode vers BRIGHTNESS
 				elif(control == 67 and value == 127):
-					mode = changeMode(Mode.PLAY.value)
-					
-				# PEDALE DU MILIEU : Changement de mode vers BRIGHTNESS sans changer les paramètres
-				elif(control == 66 and value == 127):
 					mode = changeMode(Mode.BRIGHTNESS.value)
+					
+				# PEDALE DU MILIEU : Changement de mode vers PLAY
+				elif(control == 66 and value == 127):
+					mode = changeMode(Mode.PLAY.value)
 
 				# PEDALE DE DROITE : Validation des paramètres
 				elif(control == 64 and value == 127):
@@ -326,7 +328,6 @@ try:
 					settings["colorW"] = blanc
 					write_settingsJSON(json_file_name, settings)
 					date_modif = stat(json_file_name)[8]
-					mode = changeMode(Mode.PLAY.value)
 
 			# Mode BRIGHTNESS : Les leds s'allument avec la couleur choisie, on peut choisir la luminosité en appuyant sur les notes
 			elif(mode == Mode.BRIGHTNESS.value):
@@ -335,13 +336,17 @@ try:
 				if "note_on" in str(msg):
 					brightness_temp = int((note-21) * (255/87))
 					strip.setBrightness(brightness_temp)
+				elif "note_off" in str(msg):
+					strip.setBrightness(LED_BRIGHTNESS)
 
-				# PEDALE DE GAUCHE : Changement de mode vers COLOR_RGB sans changer les paramètres
+				# PEDALE DE GAUCHE : Changement de mode vers COLOR_RGB
 				elif(control == 67 and value == 127):
+					strip.setBrightness(LED_BRIGHTNESS)
 					mode = changeMode(Mode.COLOR_RGB.value)
 					
-				# PEDALE DU MILIEU : Changement de mode vers PLAY sans changer les paramètres
+				# PEDALE DU MILIEU : Changement de mode vers PLAY
 				elif(control == 66 and value == 127):
+					strip.setBrightness(LED_BRIGHTNESS)
 					mode = changeMode(Mode.PLAY.value)
 
 				# PEDALE DE DROITE : Validation des paramètres
@@ -351,7 +356,6 @@ try:
 					settings["brightness"] = LED_BRIGHTNESS
 					write_settingsJSON(json_file_name, settings)
 					date_modif = stat(json_file_name)[8]
-					mode = changeMode(Mode.PLAY.value)
 
 		strip.show()
 
@@ -362,6 +366,6 @@ except:
 	for i in range(strip.numPixels()):
 		strip.setPixelColor(i, Color(0,255,0,0))
 	strip.show()
-	time.sleep(2)
+	time.sleep(1)
 	colorWipeFromCenter(strip, Color(0,0,0,0))
 
