@@ -154,8 +154,9 @@ def selectionModeWhite(strip, color):
 	bleu = color & 255
 	rouge = (color >> 8) & 255
 	vert = (color >> 16) & 255
-	for i in range(strip.numPixels()):
-		strip.setPixelColor(i, Color(vert, rouge, bleu, int(i * (255/strip.numPixels())) ))
+	for i in range(int(strip.numPixels()/2) +1):
+		strip.setPixelColor(int(strip.numPixels()/2) + i, Color(vert, rouge, bleu, int(((strip.numPixels()/2) + i) * (255/strip.numPixels()))))
+		strip.setPixelColor(int(strip.numPixels()/2) - i, Color(vert, rouge, bleu, int(((strip.numPixels()/2) - i) * (255/strip.numPixels()))))
 		strip.show()
 
 
@@ -301,6 +302,7 @@ try:
 					settings["colorRGB"] = "#" + '{:02x}'.format(rouge, 'x') + '{:02x}'.format(vert, 'x') + '{:02x}'.format(bleu, 'x')
 					write_settingsJSON(json_file_name, settings)
 					date_modif = stat(json_file_name)[8]
+					previewColorON(strip, colorON)
 					mode = changeMode(Mode.PLAY.value)
 
 			# Mode COLOR_W : Les leds s'allument avec la couleur choisie et différents degrés de blanc, on peut choisir la couleur en appuyant sur les notes
@@ -328,6 +330,8 @@ try:
 					settings["colorW"] = blanc
 					write_settingsJSON(json_file_name, settings)
 					date_modif = stat(json_file_name)[8]
+					previewColorON(strip, colorON)
+					mode = changeMode(Mode.PLAY.value)
 
 			# Mode BRIGHTNESS : Les leds s'allument avec la couleur choisie, on peut choisir la luminosité en appuyant sur les notes
 			elif(mode == Mode.BRIGHTNESS.value):
@@ -356,6 +360,8 @@ try:
 					settings["brightness"] = LED_BRIGHTNESS
 					write_settingsJSON(json_file_name, settings)
 					date_modif = stat(json_file_name)[8]
+					previewColorON(strip, colorON)
+					mode = changeMode(Mode.PLAY.value)
 
 		strip.show()
 
