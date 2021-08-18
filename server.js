@@ -20,6 +20,7 @@ app.post('/process_post', urlencodedParser, function (req, res) {
 		brightness: req.body.brightness,
 	}
 	fs.writeFileSync(__dirname + '/public/settings.json', JSON.stringify(output))
+	res.status(200).send()
 })
 
 var server = app.listen(8081, function () {
