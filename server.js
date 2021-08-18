@@ -6,10 +6,10 @@ const fs = require('fs')
 // Create application/x-www-form-urlencoded parser
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
-app.use(express.static('public'))
+app.use(express.static(__dirname + '/public'))
 
 app.get('/', function (req, res) {
-	res.sendFile('index.html')
+	res.sendFile(__dirname + '/index.html')
 })
 
 app.post('/process_post', urlencodedParser, function (req, res) {
