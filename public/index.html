@@ -1,28 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paramètres leds</title>
-
+    <title>Illuminated Piano Interface</title>
 </head>
-<body>
-    <form id="form-settings" action="/process_post" method="POST">
-        <div>
-            <input id="colorRGB" type="color" name="colorRGB" onchange="showValueChange('colorRGB', 'span_RGB')"></input> <span id="span_RGB"></span>
-            <span id="rgb-text"></span>
-        
-            <p>Blanc : </p>
-            <input id="colorW" type="range" min="0" max="255" name="colorW" oninput="showValueChange('colorW', 'span_W')"></input> <span id="span_W"></span>
 
-            <p>Luminosité : </p>
-            <input id="brightness" type="range" min="0" max="255" name="brightness" oninput="showValueChange('brightness', 'span_brightness')"></input> <span id="span_brightness"></span>
-        </div>
-        
-        <input id="btn-validate" type ="submit" value ="Valider">
-    </form>
-    
+<body>
+    <div>
+        <span>Couleur : </span>
+        <input id="colorRGB" type="color"></input>
+        <span id="span_RGB"></span>
+    </div>
+
+    <div>
+        <span>Blanc : </span>
+        <input id="colorW" type="range" min="0" max="255"></input>
+        <span id="span_W"></span>
+    </div>
+
+    <div>
+        <span>Luminosité : </span>
+        <input id="brightness" type="range" min="0" max="255"></input>
+        <span id="span_brightness"></span>
+    </div>
+
+    <div><button id="btn-validate">Valider</button></div>
+
     <script src="index.js"></script>
 </body>
+
 </html>
