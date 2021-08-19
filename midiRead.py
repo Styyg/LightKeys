@@ -59,10 +59,10 @@ def note_on(led, blanche):
 		strip.setPixelColor(led+2, colorON)
 
 def note_off(led, blanche):
-    strip.setPixelColor(led, colorOFF)
-    strip.setPixelColor(led+1, colorOFF)
+    strip.setPixelColor(led, color_back)
+    strip.setPixelColor(led+1, color_back)
     if(blanche):
-	    strip.setPixelColor(led+2, colorOFF)
+	    strip.setPixelColor(led+2, color_back)
 
 def read_settingsJSON(json_file_name):
 	try:
@@ -180,7 +180,7 @@ def getDefaultSettingFileData():
 
 def changeMode(mode):
 	if(mode == Mode.PLAY.value):
-		colorWipeFromSides(strip, colorOFF)
+		colorWipeFromSides(strip, color_back)
 	elif(mode == Mode.COLOR_RGB.value):
 		rainbowFromCenter(strip)
 	elif(mode == Mode.COLOR_W.value):
@@ -218,6 +218,8 @@ if not(settings):
 # Color(G,R,B)   aucune idée de pourquoi c'est GRB au lieu de RGB, peut-être parce que les leds sont SK6812 au lieu de WS2812
 colorON = Color(vert, rouge, bleu, blanc)
 colorOFF = Color(0, 0, 0, 0)
+color_back = colorOFF
+# color_back = Color(1, 1, 1, 1)
 
 strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL, LED_STRIP)
 strip.begin()
@@ -229,7 +231,7 @@ except Exception as e:
 	print(traceback.format_exc())
 
 colorWipeFromCenter(strip, colorON) 
-colorWipeFromSides(strip, Color(0,0,0,0)) 
+colorWipeFromSides(strip, color_back) 
 	
 mode = Mode.PLAY.value
 # print("En attente d'entrée MIDI :")
@@ -246,7 +248,7 @@ try:
 			strip.setBrightness(LED_BRIGHTNESS)
 			
 			colorWipeFromCenter(strip, colorON) 
-			colorWipeFromSides(strip, colorOFF) 
+			colorWipeFromSides(strip, color_back) 
 
 		for msg in inport.iter_pending():
 			# print(msg)
@@ -273,7 +275,7 @@ try:
 
 				# PEDALE DU MILIEU : Nettoie le bandeau en éteignant tout
 				elif(control == 66 and value == 127):
-					colorWipeFromSides(strip, colorOFF)
+					colorWipeFromSides(strip, color_back)
 
 			# Mode COLOR_RGB : Les leds s'allument en arc en ciel, on peut choisir la couleur en appuyant sur une note
 			elif(mode == Mode.COLOR_RGB.value):
@@ -373,5 +375,5 @@ except:
 		strip.setPixelColor(i, Color(0,255,0,0))
 	strip.show()
 	time.sleep(1)
-	colorWipeFromCenter(strip, Color(0,0,0,0))
+	colorWipeFromCenter(strip, colorOFF)
 
