@@ -1,56 +1,97 @@
 function init() {
-	const btnValidate = document.querySelector('#btn-validate')
-	const inputRGB = document.getElementById('colorRGB')
-	const inputW = document.getElementById('colorW')
-	const inputBrightness = document.getElementById('brightness')
+	setEventsListeners()
+	getSettings().then((settings) => {
+		setSettings(settings)
+	})
+	getPresets().then((presets) => {
+		showPresets(presets)
+	})
+}
+
+async function getSettings() {
+	const response = await fetch('./settings.json')
+	const settings = await response.json()
+	return settings
+}
+
+async function getPresets() {
+	const response = await fetch('./presets.json')
+	const presets = await response.json()
+	return presets
+}
+
+function setEventsListeners() {
+	const btnValidate = document.getElementById('btn-validate')
+	const colorRGBRangeInput = document.getElementById('colorRGBRangeInput')
+	const colorRGBTextInput = document.getElementById('colorRGBTextInput')
+	const colorWRangeInput = document.getElementById('colorWRangeInput')
+	const colorWTextInput = document.getElementById('colorWTextInput')
+	const brightnessRangeInput = document.getElementById('brightnessRangeInput')
+	const brightnessTextInput = document.getElementById('brightnessTextInput')
 
 	btnValidate.addEventListener('click', (e) => {
-		saveDataInFile()
-	})
-	inputRGB.addEventListener('input', (e) => {
-		showValueChange('colorRGB', 'span_RGB')
-	})
-	inputW.addEventListener('input', (e) => {
-		showValueChange('colorW', 'span_W')
-	})
-	inputBrightness.addEventListener('input', (e) => {
-		showValueChange('brightness', 'span_brightness')
+		saveSettings()
 	})
 
-	readDataFromFile()
+	colorRGBRangeInput.addEventListener('input', (e) => {
+		colorRGBTextInput.value =
+			e.target.value
+	})
+	colorRGBTextInput.addEventListener('input', (e) => {
+		colorRGBRangeInput.value = e.target.value
+	})
 
+	colorWRangeInput.addEventListener('input', (e) => {
+		colorWTextInput.value = e.target.value
+	})
+	colorWTextInput.addEventListener('input', (e) => {
+		colorWRangeInput.value = e.target.value
+	})
+
+	brightnessRangeInput.addEventListener('input', (e) => {
+		brightnessTextInput.value = e.target.value
+	})
+	brightnessTextInput.addEventListener('input', (e) => {
+		brightnessRangeInput.value = e.target.value
+	})
 }
 
-async function readDataFromFile() {
-	const inputRGB = document.getElementById('colorRGB')
-	const inputW = document.getElementById('colorW')
-	const inputBrightness = document.getElementById('brightness')
+function showPresets(presets) {
+	const presetsList = document.querySelector('.presetsList')
 
-	const response = await fetch('./settings.json')
-	const data = await response.json()
-
-	inputRGB.value = data.colorRGB
-	inputW.value = data.colorW
-	inputBrightness.value = data.brightness
-
-	showValueChange('colorRGB', 'span_RGB')
-	showValueChange('colorW', 'span_W')
-	showValueChange('brightness', 'span_brightness')
-}
-
-async function saveDataInFile() {
-	const inputRGB = document.getElementById('colorRGB')
-	const inputW = document.getElementById('colorW')
-	const inputBrightness = document.getElementById('brightness')
-	const settings = {
-		colorRGB: '#FF0000',
-		colorW: 0,
-		brightness: 100,
+	for (const preset of presets) {
+		const btn = document.createElement('button')
+		btn.classList.add('btn', 'btn-outline-warning')
+		btn.innerText = preset.name
+		btn.addEventListener('click', (e) => {
+			setSettings(preset.settings)
+		})
+		presetsList.append(btn)
 	}
+}
 
-	settings.colorRGB = inputRGB.value
-	settings.colorW = inputW.value
-	settings.brightness = inputBrightness.value
+function setSettings(settings) {
+	const colorRGBRangeInput = document.getElementById('colorRGBRangeInput')
+	const colorRGBTextInput = document.getElementById('colorRGBTextInput')
+	const colorWRangeInput = document.getElementById('colorWRangeInput')
+	const colorWTextInput = document.getElementById('colorWTextInput')
+	const brightnessRangeInput = document.getElementById('brightnessRangeInput')
+	const brightnessTextInput = document.getElementById('brightnessTextInput')
+
+	colorRGBRangeInput.value = colorRGBTextInput.value = settings.colorRGB
+	colorWRangeInput.value = colorWTextInput.value = settings.colorW
+	brightnessRangeInput.value = brightnessTextInput.value = settings.brightness
+}
+
+async function saveSettings() {
+	const colorRGBRangeInput = document.getElementById('colorRGBRangeInput')
+	const colorWRangeInput = document.getElementById('colorWRangeInput')
+	const brightnessRangeInput = document.getElementById('brightnessRangeInput')
+	const settings = {
+		colorRGB: colorRGBRangeInput.value,
+		colorW: colorWRangeInput.value,
+		brightness: brightnessRangeInput.value,
+	}
 
 	const response = await fetch('/send',
 		{
@@ -58,11 +99,6 @@ async function saveDataInFile() {
 				"Content-Type": "application/json"
 			}
 		})
-}
-
-function showValueChange(elementValue, elementToShowValue) {
-	document.getElementById(elementToShowValue).innerHTML =
-		document.getElementById(elementValue).value
 }
 
 init()

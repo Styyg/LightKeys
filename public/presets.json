@@ -1,0 +1,18 @@
+[
+	{
+		"name": "Bleu",
+		"settings": { "colorRGB": "#0400ff", "colorW": "196", "brightness": "48" }
+	},
+	{
+		"name": "Rouge",
+		"settings": { "colorRGB": "#ff0000", "colorW": "23", "brightness": "174" }
+	},
+	{
+		"name": "Vert",
+		"settings": { "colorRGB": "#00ff1e", "colorW": "50", "brightness": "78" }
+	},
+	{
+		"name": "SuperSet",
+		"settings": { "colorRGB": "#547845", "colorW": "200", "brightness": "66" }
+	}
+]
