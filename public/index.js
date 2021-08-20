@@ -10,10 +10,10 @@ function init() {
 	inputRGB.addEventListener('input', (e) => {
 		showValueChange('colorRGB', 'span_RGB')
 	})
-	inputW.addEventListener('change', (e) => {
+	inputW.addEventListener('input', (e) => {
 		showValueChange('colorW', 'span_W')
 	})
-	inputBrightness.addEventListener('change', (e) => {
+	inputBrightness.addEventListener('input', (e) => {
 		showValueChange('brightness', 'span_brightness')
 	})
 
