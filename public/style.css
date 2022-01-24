@@ -1,0 +1,18 @@
+:root {
+  /*Dark mode*/
+  --body-bgcolor: rgb(40, 40, 40);
+  --body-text-color: #eee;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    /*Light mode*/
+    --body-bgcolor: rgb(255, 255, 255);
+    --body-text-color: #000;
+  }
+}
+
+body {
+  background: var(--body-bgcolor);
+  color: var(--body-text-color);
+}
