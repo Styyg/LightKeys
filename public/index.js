@@ -34,8 +34,7 @@ function setEventsListeners() {
 	})
 
 	colorRGBRangeInput.addEventListener('input', (e) => {
-		colorRGBTextInput.value =
-			e.target.value
+		colorRGBTextInput.value = e.target.value
 	})
 	colorRGBTextInput.addEventListener('input', (e) => {
 		colorRGBRangeInput.value = e.target.value
@@ -93,12 +92,13 @@ async function saveSettings() {
 		brightness: brightnessRangeInput.value,
 	}
 
-	const response = await fetch('/send',
-		{
-			method: 'POST', body: JSON.stringify(settings), headers: {
-				"Content-Type": "application/json"
-			}
-		})
+	const response = await fetch('/send', {
+		method: 'POST',
+		body: JSON.stringify(settings),
+		headers: {
+			'Content-Type': 'application/json',
+		},
+	})
 }
 
 init()
