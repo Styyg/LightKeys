@@ -1,7 +1,8 @@
 import queue
 import time
-from leds import LEDStrip, LED_COUNT
 import logging
+import color_modes, effect_modes
+from leds import LEDStrip
 
 log = logging.getLogger("RENDERER")
 
@@ -18,6 +19,14 @@ class Renderer:
         self.queue = queue.Queue()   # queue partagée avec le MidiListener
         self.strip = LEDStrip()  # instance du bandeau
         self.running = False
+        self.colorMode = color_modes.OneColor((0,128,128,0))
+        dictionary = {21: (255, 0, 0, 0), 
+                     108: (255, 255, 255, 0)
+                     }
+        gradient = color_modes.Gradient(dictionary)
+        self.set_color_mode(gradient)
+
+        # self.effectMode = effect_modes
         self.noteToLeds = {}  # mapping note → LED index
         self.initNotesToLeds()
 
@@ -56,11 +65,11 @@ class Renderer:
                     case "note_on":
                         # On allume la LED correspondante en rouge
                         for led_index in led_indices:
-                            self.strip.set_led(led_index, 255, 0, 0, 0)
+                            self.strip.set_led(led_index, self.colorMode.get_color(msg.note))
                     case "note_off":
                         # On éteint la LED correspondante
                         for led_index in led_indices:
-                            self.strip.set_led(led_index, 0, 0, 0, 0)
+                            self.strip.set_led(led_index, (0, 0, 0, 0))
                     case "control_change":
                         pass
                         # log.debug(f"Control change: {msg.control}, {msg.value}")
@@ -81,3 +90,8 @@ class Renderer:
         self.strip.clear()
         self.strip.show()
         log.info("Renderer stopped.")
+
+    def set_color_mode(self, mode: color_modes.ColorMode):
+        """Change le mode de couleur"""
+        self.colorMode = mode
+        log.info(f"Color mode changed to {type(mode).__name__}")
