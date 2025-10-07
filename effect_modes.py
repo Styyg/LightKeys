@@ -47,6 +47,8 @@ class FadeOutEffect(EffectMode):
             state = note_data["state"]
 
             if state == 1:  # note pressed
+                self.fading_notes.pop(note_key, None)
+                self.notes_to_render.pop(note_key, None)
                 continue
 
             start_time = note_data["start_time"]

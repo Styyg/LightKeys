@@ -63,7 +63,7 @@ class Gradient(ColorMode):
         self.note_color_map = note_color_map if note_color_map else {}
         self.stops = sorted(self.note_color_map.keys())
 
-    def get_color(self, note: int) -> tuple[int, int, int, int]:    
+    def get_color(self, note: int, velocity: int) -> tuple[int, int, int, int]:    
         if note <= self.stops[0]:
             return self.note_color_map[self.stops[0]]
         

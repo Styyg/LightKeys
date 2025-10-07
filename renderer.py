@@ -22,7 +22,6 @@ class Renderer:
         self.noteToLeds = {}  # mapping note → LED index
         self.notes_state = {}
         self.colorMode = None
-        self.effectMode = None
         self.effectsMode = []
         
         # self.set_color_mode(color_modes.OneColor((255,0,0,0)))
@@ -36,7 +35,7 @@ class Renderer:
         self.set_color_mode(color_modes.VelocityBased((255,0,0,0), (0,0,0,255), 40, 100, color_modes.ease_in_power))
 
         self.add_effect_mode(effect_modes.NoteOnEffect())
-        self.add_effect_mode(effect_modes.FadeOutEffect(0.2))
+        self.add_effect_mode(effect_modes.FadeOutEffect(0.15))
 
         self.initNotesToLeds()
 
@@ -57,6 +56,8 @@ class Renderer:
 
     def start(self):
         """Boucle principale du rendu"""
+        if self.check_modes() == 0:
+            return
         self.running = True
         frame_time = 1.0 / FPS
         next_frame = time.monotonic()
@@ -111,7 +112,6 @@ class Renderer:
         time.sleep(0.001)
 
     def render_effects(self, note_events):
-        # self.effectMode.apply(self.notes_state)
         notes_to_render = {}        
         for effect in self.effectsMode:
             effect.apply(self.notes_state, note_events)
@@ -129,10 +129,21 @@ class Renderer:
         self.strip.show()
         log.info("Renderer stopped.")
 
+    def check_modes(self):
+        valid = True
+        if self.colorMode is None:
+            log.error("No color mode set.")
+            valid = False
+        if not self.effectsMode:
+            log.error("No effect modes set.")
+            valid = False
+
+        return 1 if valid else 0
+
     def set_color_mode(self, mode: color_modes.ColorMode):
         """Change le mode de couleur"""
         self.colorMode = mode
-        log.info(f"Color mode changed to {type(mode).__name__}")
+        log.info(f"Color mode changed to: {type(mode).__name__}")
 
     def add_effect_mode(self, mode: effect_modes.EffectMode):
         """Ajoute un mode d'effet (en plus de l'actuel)"""
