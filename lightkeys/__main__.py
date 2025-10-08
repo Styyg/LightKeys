@@ -2,6 +2,7 @@ import time
 import logging
 from .midi import MidiListener
 from .leds import Renderer
+from .server import Server
 
 logging.basicConfig(
     # level=logging.INFO,
@@ -15,9 +16,12 @@ def main():
     log.info("Démarrage de LightKeys...")
     renderer = Renderer()
     midi = MidiListener(renderer.queue)
+    server = Server()
+    server.set_renderer(renderer)
 
     try:
         midi.start()
+        server.start()
         renderer.start()
 
         while True:
@@ -31,6 +35,7 @@ def main():
         log.info("Arrêt des services...")
         midi.stop()
         renderer.stop()
+        server.stop()
 
 if __name__ == "__main__":
     main()

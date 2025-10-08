@@ -1,9 +1,9 @@
 import queue
 import time
 import logging
+import inspect
 from . import color_modes, effect_modes
 from .leds import LEDStrip
-from lightkeys.math_utils import ease_in_power
 
 log = logging.getLogger("RENDERER")
 
@@ -25,15 +25,8 @@ class Renderer:
         self.effectsMode = []
         self.FPS = 60
         
-        # self.set_color_mode(color_modes.OneColor((255,0,0,0)))
-
-        # dictionary = {21: (255, 0, 0, 0), 
-        #              108: (255, 255, 255, 0)
-        #              }
-        # gradient = color_modes.Gradient(dictionary)
-        # self.set_color_mode(gradient)
-
-        self.set_color_mode(color_modes.VelocityBased((255,0,0,0), (0,0,0,255), 40, 100, ease_in_power))
+        self.load_color_mode_list()
+        self.load_effect_mode_list()
 
         self.add_effect_mode(effect_modes.NoteOnEffect())
         self.add_effect_mode(effect_modes.FadeOutEffect(0.15))
@@ -57,8 +50,7 @@ class Renderer:
 
     def start(self):
         """Boucle principale du rendu"""
-        if self.check_modes() == 0:
-            return
+        self.check_modes()
         self.running = True
         frame_time = 1.0 / self.FPS
         next_frame = time.monotonic()
@@ -71,6 +63,10 @@ class Renderer:
                     if msg.note < LOWEST_MIDI_NOTE or msg.note > HIGHEST_MIDI_NOTE:
                         log.warning(f"Note {msg.note} out of range ({LOWEST_MIDI_NOTE}-{HIGHEST_MIDI_NOTE})")
                         continue
+
+                if self.colorMode is None:
+                    log.error("No color mode set, cannot process MIDI events.")
+                    continue
 
                 match msg.type:
                     case "note_on":
@@ -131,22 +127,67 @@ class Renderer:
         log.info("Renderer stopped.")
 
     def check_modes(self):
-        valid = True
         if self.colorMode is None:
-            log.error("No color mode set.")
-            valid = False
+            log.warning("No color mode set.")
         if not self.effectsMode:
-            log.error("No effect modes set.")
-            valid = False
+            log.warning("No effect modes set.")
 
-        return 1 if valid else 0
-
-    def set_color_mode(self, mode: color_modes.ColorMode):
-        """Change le mode de couleur"""
-        self.colorMode = mode
-        log.info(f"Color mode changed to: {type(mode).__name__}")
+    # def set_color_mode(self, mode: color_modes.ColorMode):
+    #     """Change le mode de couleur"""
+    #     self.colorMode = mode
+    #     log.info(f"Color mode changed to: {type(mode).__name__}")
 
     def add_effect_mode(self, mode: effect_modes.EffectMode):
         """Ajoute un mode d'effet (en plus de l'actuel)"""
         self.effectsMode.append(mode)
         log.info(f"Effect mode added: {type(mode).__name__}")
+
+    def load_color_mode_list(self):
+        """Charge la liste des modes de couleur disponibles"""
+        self.colorModeList = {}
+        for name, obj in inspect.getmembers(color_modes, inspect.isclass):
+            if issubclass(obj, color_modes.ColorMode) and obj is not color_modes.ColorMode:
+                instance = obj()
+                self.colorModeList[instance.name] = instance
+
+    def load_effect_mode_list(self):
+        """Charge la liste des modes d'effet disponibles"""
+        self.effectModeList = {}
+        for name, obj in inspect.getmembers(effect_modes, inspect.isclass):
+            if issubclass(obj, effect_modes.EffectMode) and obj is not effect_modes.EffectMode:
+                instance = obj()
+                self.effectModeList[instance.name] = instance
+
+    # API methods
+    def list_color_modes(self):        
+        """Retourne la liste des modes de couleur disponibles"""
+        return list(self.colorModeList.keys())
+
+    def list_effect_modes(self):
+        """Retourne la liste des modes d'effet disponibles"""
+        return list(self.effectModeList.keys())
+    
+    def set_color_mode(self, name: str):
+        """Change le mode actif."""
+        if name not in self.colorModeList:
+            raise ValueError(f"Color mode inconnu : {name}")
+        self.colorMode = self.colorModeList[name]        
+        log.info(f"Color mode changed to: {name}")
+
+    def get_active_color_mode(self):
+        """Nom du mode actif."""
+        if not self.colorMode:
+            return None
+        return self.colorMode.name
+    
+    def set_color_params(self, params: dict):
+        """Met à jour les paramètres du mode actif."""
+        if not self.colorMode:
+            raise RuntimeError("Aucun mode actif")
+        self.colorMode.update_params(params)
+
+    def get_color_params(self):
+        """Retourne les paramètres du mode actif."""
+        if not self.colorMode:
+            return {}
+        return self.colorMode.get_params()

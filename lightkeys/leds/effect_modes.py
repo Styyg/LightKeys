@@ -5,6 +5,8 @@ import logging
 log = logging.getLogger("EFFECT")
 
 class EffectMode(ABC):
+    name = "Abstract EffectMode"
+
     def __init__(self):
         self.notes_to_render = {}
 
@@ -16,6 +18,8 @@ class EffectMode(ABC):
         return self.notes_to_render
 
 class NoteOnEffect(EffectMode):
+    name = "Note On Effect"
+
     def __init__(self):
         super().__init__()
     
@@ -32,6 +36,8 @@ class NoteOnEffect(EffectMode):
                 self.notes_to_render[note_key] = (0, 0, 0, 0)
 
 class FadeOutEffect(EffectMode):
+    name = "Fade Out"
+
     def __init__(self, fade_time=0.5):
         super().__init__()
         self.fade_time = fade_time
