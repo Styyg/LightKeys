@@ -1,7 +1,7 @@
 import time
 import logging
-from midi import MidiListener
-from renderer import Renderer
+from .midi import MidiListener
+from .leds import Renderer
 
 logging.basicConfig(
     # level=logging.INFO,

@@ -1,12 +1,12 @@
 import queue
 import time
 import logging
-import color_modes, effect_modes
-from leds import LEDStrip
+from . import color_modes, effect_modes
+from .leds import LEDStrip
+from lightkeys.math_utils import ease_in_power
 
 log = logging.getLogger("RENDERER")
 
-FPS = 60  # images par seconde
 LOWEST_MIDI_NOTE = 21
 HIGHEST_MIDI_NOTE = 108
 
@@ -23,6 +23,7 @@ class Renderer:
         self.notes_state = {}
         self.colorMode = None
         self.effectsMode = []
+        self.FPS = 60
         
         # self.set_color_mode(color_modes.OneColor((255,0,0,0)))
 
@@ -32,7 +33,7 @@ class Renderer:
         # gradient = color_modes.Gradient(dictionary)
         # self.set_color_mode(gradient)
 
-        self.set_color_mode(color_modes.VelocityBased((255,0,0,0), (0,0,0,255), 40, 100, color_modes.ease_in_power))
+        self.set_color_mode(color_modes.VelocityBased((255,0,0,0), (0,0,0,255), 40, 100, ease_in_power))
 
         self.add_effect_mode(effect_modes.NoteOnEffect())
         self.add_effect_mode(effect_modes.FadeOutEffect(0.15))
@@ -59,7 +60,7 @@ class Renderer:
         if self.check_modes() == 0:
             return
         self.running = True
-        frame_time = 1.0 / FPS
+        frame_time = 1.0 / self.FPS
         next_frame = time.monotonic()
         note_events_this_frame = []
 
