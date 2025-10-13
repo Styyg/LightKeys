@@ -14,6 +14,15 @@ class EffectMode(ABC):
     def apply(self, notes_state: dict, frame_note_events: list) -> list:
         pass
 
+    def update_params(self, params: dict):
+        """Met à jour les paramètres du mode d'effet."""
+        log.error(f"update_params not implemented for {self.name}")
+
+    def get_params(self) -> dict:
+        """Retourne les paramètres du mode d'effet."""
+        log.error(f"get_params not implemented for {self.name}")
+        return {}
+
     def get_notes_to_render(self):
         return self.notes_to_render
 

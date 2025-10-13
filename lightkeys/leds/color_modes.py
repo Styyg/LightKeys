@@ -11,15 +11,14 @@ class ColorMode(ABC):
     def get_color(self, note: int, velocity: int) -> tuple[int, int, int, int]:
         pass
 
-    @abstractmethod
     def update_params(self, params: dict):
         """Met à jour les paramètres du mode de couleur."""
-        pass
+        log.error(f"update_params not implemented for {self.name}")
 
-    @abstractmethod
     def get_params(self) -> dict:
         """Retourne les paramètres du mode de couleur."""
-        pass
+        log.error(f"get_params not implemented for {self.name}")
+        return {}
 
 class OneColor(ColorMode):
     name = "One Color"

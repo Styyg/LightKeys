@@ -3,6 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Dict, Any
 
+def get_renderer():
+    """Récupère le renderer depuis app.state, ou lève une erreur propre."""
+    renderer = getattr(app.state, "renderer", None)
+    if renderer is None:
+        raise HTTPException(status_code=500, detail="Renderer non initialisé")
+    return renderer
+
 app = FastAPI(title="LightKeys Server")
 
 app.add_middleware(
@@ -16,43 +23,40 @@ app.add_middleware(
 def read_root():
     return {"status": "ok", "service": "lightkeys"}
 
-# État temporaire du ruban
-current_color = {"r": 0, "g": 0, "b": 0, "w": 0}
-
-@app.get("/leds/color_modes")
+@app.get("/leds/list_color_modes")
 def list_color_modes():
     """Retourne la liste des modes de couleur disponibles."""
-    renderer = getattr(app.state, "renderer", None)
-    if not renderer:
-        raise HTTPException(status_code=500, detail="Renderer non initialisé")
-
+    renderer = get_renderer()
     return {"available_modes": renderer.list_color_modes()}
 
+@app.get("/leds/list_effect_modes")
+def list_effect_modes():
+    renderer = get_renderer()
+    return {"available_effects": renderer.list_effect_modes()}
 
 @app.get("/leds/color_mode")
-def get_color_mode():
+def get_active_color_mode():
     """Retourne le mode actif et ses paramètres."""
-    renderer = getattr(app.state, "renderer", None)
-    if not renderer:
-        raise HTTPException(status_code=500, detail="Renderer non initialisé")
-
+    renderer = get_renderer()
     return {
         "active_mode": renderer.get_active_color_mode(),
         "params": renderer.get_color_params()
     }
 
+@app.get("/leds/effect_modes")
+def get_active_effect_modes():
+    """Retourne les modes d'effet actifs et leurs paramètres."""
+    renderer = get_renderer()
+    return renderer.get_active_effect_modes()
 
-class ColorModeInput(BaseModel):
+class ModeInput(BaseModel):
     mode: str
 
 
 @app.post("/leds/color_mode")
-def set_color_mode(data: ColorModeInput):
+def set_color_mode(data: ModeInput):
     """Change le mode de couleur actif."""
-    renderer = getattr(app.state, "renderer", None)
-    if not renderer:
-        raise HTTPException(status_code=500, detail="Renderer non initialisé")
-
+    renderer = get_renderer()
     try:
         renderer.set_color_mode(data.mode)
     except ValueError as e:
@@ -60,19 +64,32 @@ def set_color_mode(data: ColorModeInput):
 
     return {"success": True, "active_mode": data.mode}
 
+@app.post("/leds/effect_mode")
+def set_effect_mode(data: ModeInput):
+    """Change le mode d'effet actif."""
+    renderer = get_renderer()
+    try:
+        renderer.set_effect_mode(data.mode)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-class ColorParamsInput(BaseModel):
+    return {"success": True, "active_effect": data.mode}
+
+class ParamsInput(BaseModel):
     params: Dict[str, Any]
 
-
 @app.post("/leds/color_params")
-def set_color_params(data: ColorParamsInput):
+def set_color_params(data: ParamsInput):
     """Met à jour les paramètres du mode actif."""
-    renderer = getattr(app.state, "renderer", None)
-    if not renderer:
-        raise HTTPException(status_code=500, detail="Renderer non initialisé")
-
+    renderer = get_renderer()
     renderer.set_color_params(data.params)
+    return {"success": True, "updated_params": data.params}
+
+@app.post("/leds/effect_params")
+def set_effect_params(data: ParamsInput):
+    """Met à jour les paramètres du mode d'effet actif."""
+    renderer = get_renderer()
+    renderer.set_effect_params(data.params)
     return {"success": True, "updated_params": data.params}
 
 def set_renderer(renderer):

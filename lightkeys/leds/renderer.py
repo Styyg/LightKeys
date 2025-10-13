@@ -180,6 +180,14 @@ class Renderer:
             return None
         return self.colorMode.name
     
+    def get_active_effect_modes(self):
+        """Noms des modes d'effet actifs."""
+        active_effects = {}
+        for effect in self.effectsMode:
+            if effect is None:
+                continue
+            active_effects[effect.name] = effect.get_params()
+    
     def set_color_params(self, params: dict):
         """Met à jour les paramètres du mode actif."""
         if not self.colorMode:
@@ -191,3 +199,8 @@ class Renderer:
         if not self.colorMode:
             return {}
         return self.colorMode.get_params()
+    
+    def set_effect_params(self, effect_id, params: dict):
+        if(len(self.effectsMode) <= effect_id or self.effectsMode[effect_id] is None):
+            raise ValueError(f"Effect ID {effect_id} out of range")
+        self.effectsMode[effect_id].update_params(params)
