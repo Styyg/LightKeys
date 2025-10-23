@@ -31,9 +31,11 @@ class MidiListener:
                     self.event_queue.put(msg)
                     match msg.type:
                         case "note_on" | "note_off":
-                            log.debug(f"{msg.type.upper()}, NOTE={msg.note}, VELOCITY={msg.velocity}")
+                            pass
+                            # log.debug(f"{msg.type.upper()}, NOTE={msg.note}, VELOCITY={msg.velocity}")
                         case "control_change":
-                            log.debug(f"{msg.type.upper()}, CONTROL={msg.control}, VALUE={msg.value}")
+                            pass
+                            # log.debug(f"{msg.type.upper()}, CONTROL={msg.control}, VALUE={msg.value}")
                         case _:
                             log.debug("Event: " + str(msg))
                 time.sleep(0.001)

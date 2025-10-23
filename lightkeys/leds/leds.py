@@ -34,7 +34,7 @@ class LEDStrip:
     def set_led(self, index, color):
         """Définit la couleur d’une LED donnée (en RGB 0-255)."""
         if 0 <= index < LED_COUNT:
-            log.debug(f"Led {index} to color {color}")
+            # log.debug(f"Led {index} to color {color}")
             self.strip.setPixelColor(index, Color(*color))
         else:
             log.warning(f"LED index {index} out of range (0-{LED_COUNT-1})")

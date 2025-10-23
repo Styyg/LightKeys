@@ -1,7 +1,10 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Dict, Any
+from pathlib import Path
 
 def get_renderer():
     """Récupère le renderer depuis app.state, ou lève une erreur propre."""
@@ -19,9 +22,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+web_dir = Path(__file__).parent.parent / "web"
+app.mount("/web", StaticFiles(directory=web_dir), name="web")
+
 @app.get("/")
-def read_root():
-    return {"status": "ok", "service": "lightkeys"}
+def root():
+    """Page d'accueil"""
+    return FileResponse(web_dir / "index.html")
 
 @app.get("/leds/list_color_modes")
 def list_color_modes():

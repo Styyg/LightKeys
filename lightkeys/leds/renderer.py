@@ -2,7 +2,8 @@ import queue
 import time
 import logging
 import inspect
-from . import color_modes, effect_modes
+from . import color_modes as ColorMode
+from . import effect_modes as EffectMode
 from .leds import LEDStrip
 
 log = logging.getLogger("RENDERER")
@@ -28,8 +29,10 @@ class Renderer:
         self.load_color_mode_list()
         self.load_effect_mode_list()
 
-        self.add_effect_mode(effect_modes.NoteOnEffect())
-        self.add_effect_mode(effect_modes.FadeOutEffect(0.15))
+        self.set_color_mode("One Color")  # mode par défaut
+
+        self.add_effect_mode(EffectMode.NoteOnEffect())
+        self.add_effect_mode(EffectMode.FadeOutEffect(0.15))
 
         self.initNotesToLeds()
 
@@ -132,12 +135,7 @@ class Renderer:
         if not self.effectsMode:
             log.warning("No effect modes set.")
 
-    # def set_color_mode(self, mode: color_modes.ColorMode):
-    #     """Change le mode de couleur"""
-    #     self.colorMode = mode
-    #     log.info(f"Color mode changed to: {type(mode).__name__}")
-
-    def add_effect_mode(self, mode: effect_modes.EffectMode):
+    def add_effect_mode(self, mode: EffectMode.EffectMode):
         """Ajoute un mode d'effet (en plus de l'actuel)"""
         self.effectsMode.append(mode)
         log.info(f"Effect mode added: {type(mode).__name__}")
@@ -145,16 +143,16 @@ class Renderer:
     def load_color_mode_list(self):
         """Charge la liste des modes de couleur disponibles"""
         self.colorModeList = {}
-        for name, obj in inspect.getmembers(color_modes, inspect.isclass):
-            if issubclass(obj, color_modes.ColorMode) and obj is not color_modes.ColorMode:
+        for name, obj in inspect.getmembers(ColorMode, inspect.isclass):
+            if issubclass(obj, ColorMode.ColorMode) and obj is not ColorMode.ColorMode:
                 instance = obj()
                 self.colorModeList[instance.name] = instance
 
     def load_effect_mode_list(self):
         """Charge la liste des modes d'effet disponibles"""
         self.effectModeList = {}
-        for name, obj in inspect.getmembers(effect_modes, inspect.isclass):
-            if issubclass(obj, effect_modes.EffectMode) and obj is not effect_modes.EffectMode:
+        for name, obj in inspect.getmembers(EffectMode, inspect.isclass):
+            if issubclass(obj, EffectMode.EffectMode) and obj is not EffectMode.EffectMode:
                 instance = obj()
                 self.effectModeList[instance.name] = instance
 

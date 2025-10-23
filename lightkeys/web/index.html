@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>LightKeys Control</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+    input[type="color"] { width: 100px; height: 100px; border: none; }
+    button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h1>🎹 LightKeys Control Panel</h1>
+  <input type="color" id="colorPicker" value="#ffffff">
+  <br>
+  <button onclick="sendColor()">Envoyer</button>
+
+  <p id="response"></p>
+
+  <script>
+    async function sendColor() {
+      const color = document.getElementById("colorPicker").value;
+      const rgb = hexToRgb(color);
+      const response = await fetch("/leds/color_params", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          params: { color: [rgb.r, rgb.g, rgb.b, 0] }
+        })
+      });
+      const data = await response.json();
+      document.getElementById("response").innerText = JSON.stringify(data);
+    }
+
+    function hexToRgb(hex) {
+      const bigint = parseInt(hex.slice(1), 16);
+      return {
+        r: (bigint >> 16) & 255,
+        g: (bigint >> 8) & 255,
+        b: bigint & 255
+      };
+    }
+  </script>
+</body>
+</html>
