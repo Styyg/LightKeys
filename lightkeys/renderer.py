@@ -2,8 +2,7 @@ import queue
 import time
 import logging
 import inspect
-from . import color_modes, effect_modes
-from .leds import LEDStrip
+from .leds import color_modes, effect_modes, LEDStrip
 
 log = logging.getLogger("RENDERER")
 
@@ -158,7 +157,6 @@ class Renderer:
                 instance = obj()
                 self.effectModeList[instance.name] = instance
 
-    # API methods
     def list_color_modes(self):        
         """Retourne la liste des modes de couleur disponibles"""
         return list(self.colorModeList.keys())
@@ -204,3 +202,21 @@ class Renderer:
         if(len(self.effectsMode) <= effect_id or self.effectsMode[effect_id] is None):
             raise ValueError(f"Effect ID {effect_id} out of range")
         self.effectsMode[effect_id].update_params(params)
+
+    def list_mode_schemas(self):
+        """Retourne la description et le schéma de chaque mode."""
+        schemas = {"color_modes": {}, "effect_modes": {}}
+
+        for name, instance in self.colorModeList.items():
+            schemas["color_modes"][name] = {
+                "description": getattr(instance, "description", ""),
+                "params": getattr(instance, "schema", {})
+            }
+
+        for name, instance in self.effectModeList.items():
+            schemas["effect_modes"][name] = {
+                "description": getattr(instance, "description", ""),
+                "params": getattr(instance, "schema", {})
+            }
+
+        return schemas

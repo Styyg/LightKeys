@@ -1,9 +1,7 @@
 import platform
-from .color_modes import ColorMode
-from .effect_modes import EffectMode
-from .renderer import Renderer
-
 if platform.machine().startswith("arm"):
-    from .leds import LEDStrip
+    from .hardware_strip import HardwareStrip
+    LEDStrip = HardwareStrip
 else:
-    from .mock_strip import LEDStrip
+    from .strip import MockStrip
+    LEDStrip = MockStrip

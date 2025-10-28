@@ -6,6 +6,8 @@ log = logging.getLogger("COLOR_MODES")
 
 class ColorMode(ABC):
     name = "Abstract ColorMode"
+    description = "Abstract ColorMode Description"
+    schema = {}
 
     @abstractmethod
     def get_color(self, note: int, velocity: int) -> tuple[int, int, int, int]:
@@ -22,6 +24,10 @@ class ColorMode(ABC):
 
 class OneColor(ColorMode):
     name = "One Color"
+    description = "All notes use the same color."
+    schema = {
+        "color": {"type": "color", "label": "Color"}
+    }
 
     def __init__(self, color=(255, 0, 0, 0)):
         self.color = color
@@ -39,6 +45,22 @@ class OneColor(ColorMode):
     
 class Gradient(ColorMode):
     name = "Gradient"
+    description = "Color gradient based on note number."
+    schema = {
+        "steps": {
+            "type": "list[object]",
+            "label": "Gradient steps",
+            "item_schema": {
+                "note": {"type": "int", "label": "MIDI note", "min": 0, "max": 127},
+                "color": {"type": "color", "label": "Associated color"}
+            }
+        },
+        "interpolation": {
+            "type": "enum",
+            "label": "Interpolation",
+            "options": ["linear", "cosine"]
+        }
+    }
 
     def __init__(self, note_color_map: dict[int, tuple[int, int, int, int]] = None):
         self.note_color_map = note_color_map if note_color_map else {}
@@ -68,6 +90,13 @@ class Gradient(ColorMode):
     
 class VelocityBased(ColorMode):
     name = "Velocity Based"
+    description = "Color changes based on note velocity."
+    schema = {
+        "low_threshold": {"type": "int", "label": "Low Threshold", "min": 0, "max": 127},
+        "high_threshold": {"type": "int", "label": "High Threshold", "min": 0, "max": 127},
+        "color_low": {"type": "color", "label": "Low Color"},
+        "color_high": {"type": "color", "label": "High Color"}
+    }
 
     def __init__(self, low_vel_color=(255, 0, 0, 0), high_vel_color=(255, 255, 255, 0), low_threshold=20, high_threshold=100, easing_func=None):
         self.high_vel_color = high_vel_color

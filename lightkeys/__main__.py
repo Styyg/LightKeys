@@ -1,7 +1,7 @@
 import time
 import logging
 from .midi import MidiListener
-from .leds import Renderer
+from .renderer import Renderer
 from .server import Server
 
 logging.basicConfig(

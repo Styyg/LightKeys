@@ -6,6 +6,8 @@ log = logging.getLogger("EFFECT")
 
 class EffectMode(ABC):
     name = "Abstract EffectMode"
+    description = "Abstract EffectMode Description"
+    schema = {}
 
     def __init__(self):
         self.notes_to_render = {}
@@ -28,6 +30,7 @@ class EffectMode(ABC):
 
 class NoteOnEffect(EffectMode):
     name = "Note On Effect"
+    description = "The note lights up when pressed and turns off when released."
 
     def __init__(self):
         super().__init__()
@@ -46,6 +49,12 @@ class NoteOnEffect(EffectMode):
 
 class FadeOutEffect(EffectMode):
     name = "Fade Out"
+    description = "The note fades out after being released."
+    min_fade_time = 0.1
+    max_fade_time = 5.0
+    schema = {
+        "duration": {"type": "float", "min": min_fade_time, "max": max_fade_time}
+    }
 
     def __init__(self, fade_time=0.5):
         super().__init__()

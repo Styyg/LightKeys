@@ -1,0 +1,51 @@
+  body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      padding: 20px;
+  }
+
+  h1,
+  h2 {
+      color: #0ff;
+  }
+
+  label {
+      margin-right: 10px;
+  }
+
+  input[type="number"],
+  select {
+      width: 100px;
+      margin: 3px 5px;
+  }
+
+  .effect-card {
+      background: #1c1c1c;
+      padding: 10px;
+      margin: 6px 0;
+      border-radius: 8px;
+      cursor: grab;
+      user-select: none;
+  }
+
+  .effect-card.dragging {
+      opacity: 0.5;
+  }
+
+  .params-form {
+      margin-top: 10px;
+  }
+
+  #applyEffects {
+      margin-top: 15px;
+      background: #0cf;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+  }
+
+  #applyEffects:hover {
+      background: #09c;
+  }

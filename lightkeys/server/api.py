@@ -1,7 +1,16 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+import os
 from typing import Dict, Any
+
+class ModeInput(BaseModel):
+    mode: str
+
+class ParamsInput(BaseModel):
+    params: Dict[str, Any]
 
 def get_renderer():
     """Récupère le renderer depuis app.state, ou lève une erreur propre."""
@@ -9,6 +18,10 @@ def get_renderer():
     if renderer is None:
         raise HTTPException(status_code=500, detail="Renderer non initialisé")
     return renderer
+
+def set_renderer(renderer):
+    """Associe un objet Renderer à l'application FastAPI."""
+    app.state.renderer = renderer
 
 app = FastAPI(title="LightKeys Server")
 
@@ -19,9 +32,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+BASE_DIR = os.path.dirname(__file__)
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+INDEX_FILE = os.path.join(STATIC_DIR, "index.html")
+
+# 👉 Monter le dossier static pour servir JS, CSS, etc.
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
 @app.get("/")
-def read_root():
-    return {"status": "ok", "service": "lightkeys"}
+async def root():
+    return FileResponse(INDEX_FILE)
 
 @app.get("/leds/list_color_modes")
 def list_color_modes():
@@ -49,9 +69,11 @@ def get_active_effect_modes():
     renderer = get_renderer()
     return renderer.get_active_effect_modes()
 
-class ModeInput(BaseModel):
-    mode: str
-
+@app.get("/leds/schema")
+def get_modes_schema():
+    """Retourne la liste des schémas."""
+    renderer = get_renderer()
+    return renderer.list_mode_schemas()
 
 @app.post("/leds/color_mode")
 def set_color_mode(data: ModeInput):
@@ -75,9 +97,6 @@ def set_effect_mode(data: ModeInput):
 
     return {"success": True, "active_effect": data.mode}
 
-class ParamsInput(BaseModel):
-    params: Dict[str, Any]
-
 @app.post("/leds/color_params")
 def set_color_params(data: ParamsInput):
     """Met à jour les paramètres du mode actif."""
@@ -91,7 +110,3 @@ def set_effect_params(data: ParamsInput):
     renderer = get_renderer()
     renderer.set_effect_params(data.params)
     return {"success": True, "updated_params": data.params}
-
-def set_renderer(renderer):
-    """Associe un objet Renderer à l'application FastAPI."""
-    app.state.renderer = renderer
