@@ -15,11 +15,11 @@ class ColorMode(ABC):
 
     def update_params(self, params: dict):
         """Met à jour les paramètres du mode de couleur."""
-        log.error(f"update_params not implemented for {self.name}")
+        log.warning(f"update_params not implemented for {self.name}")
 
     def get_params(self) -> dict:
         """Retourne les paramètres du mode de couleur."""
-        log.error(f"get_params not implemented for {self.name}")
+        log.warning(f"get_params not implemented for {self.name}")
         return {}
 
 class OneColor(ColorMode):
@@ -38,6 +38,7 @@ class OneColor(ColorMode):
         return self.color
     
     def update_params(self, params):
+        log.debug(f"{self.name}.update_params with {params}")
         self.color = tuple(params.get("color", self.color))
 
     def get_params(self):
@@ -82,6 +83,7 @@ class Gradient(ColorMode):
         return (0, 0, 0, 0) # Fallback
     
     def update_params(self, params):
+        log.debug(f"{self.name}.update_params with {params}")
         self.note_color_map = {int(k): tuple(v) for k, v in params.items()}
         self.stops = sorted(self.note_color_map.keys())
         
@@ -119,6 +121,7 @@ class VelocityBased(ColorMode):
         return interpolate_colors(self.low_vel_color, self.high_vel_color, factor, self.easing_func)
     
     def update_params(self, params):
+        log.debug(f"{self.name}.update_params with {params}")
         self.low_vel_color = tuple(params.get("low_vel_color", self.low_vel_color))
         self.high_vel_color = tuple(params.get("high_vel_color", self.high_vel_color))
         low_threshold = params.get("low_threshold", self.low_threshold)
