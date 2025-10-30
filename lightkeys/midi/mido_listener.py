@@ -1,4 +1,4 @@
-from listener import BaseListener
+from .listener import BaseListener
 import mido
 import time
 import threading
@@ -34,9 +34,11 @@ class MidoListener(BaseListener):
                     self.event_queue.put(msg)
                     match msg.type:
                         case "note_on" | "note_off":
-                            log.debug(f"{msg.type.upper()}, NOTE={msg.note}, VELOCITY={msg.velocity}")
+                            # log.debug(f"{msg.type.upper()}, NOTE={msg.note}, VELOCITY={msg.velocity}")
+                            pass
                         case "control_change":
-                            log.debug(f"{msg.type.upper()}, CONTROL={msg.control}, VALUE={msg.value}")
+                            # log.debug(f"{msg.type.upper()}, CONTROL={msg.control}, VALUE={msg.value}")
+                            pass
                         case _:
                             log.debug("Event: " + str(msg))
                 time.sleep(0.001)

@@ -27,6 +27,8 @@ class Renderer:
         self.load_color_mode_list()
         self.load_effect_mode_list()
 
+        # Modes par défaut
+        self.set_color_mode(color_modes.OneColor.name)
         self.add_effect_mode(effect_modes.NoteOnEffect())
         self.add_effect_mode(effect_modes.FadeOutEffect(0.15))
 
@@ -139,7 +141,7 @@ class Renderer:
     def add_effect_mode(self, mode: effect_modes.EffectMode):
         """Ajoute un mode d'effet (en plus de l'actuel)"""
         self.effectsMode.append(mode)
-        log.info(f"Effect mode added: {type(mode).__name__}")
+        log.debug(f"Effect mode added: {type(mode).__name__}")
 
     def load_color_mode_list(self):
         """Charge la liste des modes de couleur disponibles"""
@@ -170,7 +172,7 @@ class Renderer:
         if name not in self.colorModeList:
             raise ValueError(f"Color mode inconnu : {name}")
         self.colorMode = self.colorModeList[name]        
-        log.info(f"Color mode changed to: {name}")
+        log.debug(f"Color mode changed to: {name}")
 
     def get_active_color_mode(self):
         """Nom du mode actif."""

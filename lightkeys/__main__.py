@@ -5,10 +5,9 @@ from .renderer import Renderer
 from .server import Server
 
 logging.basicConfig(
-    # level=logging.INFO,
     level=logging.DEBUG,
     format='%(asctime)s.%(msecs)03d [%(levelname)s] [%(name)s] - %(message)s',
-    datefmt='%H:%M:%S'
+    datefmt='%H:%M:%S',
 )
 log = logging.getLogger("MAIN")
 
