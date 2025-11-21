@@ -43,6 +43,19 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 async def root():
     return FileResponse(INDEX_FILE)
 
+@app.get("/api/status")
+def get_status():
+    renderer = get_renderer()
+    print("Getting status from renderer:", renderer)
+    return {
+        # "midi_connected": renderer.is_midi_connected(),
+        # "leds_on": renderer.are_leds_on(),
+        # "fps": renderer.get_fps()
+        "midi_connected": False,
+        "leds_on": False,
+        "fps": renderer.FPS
+    }
+
 @app.get("/leds/list_color_modes")
 def list_color_modes():
     """Retourne la liste des modes de couleur disponibles."""

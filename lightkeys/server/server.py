@@ -6,7 +6,7 @@ from . import api
 log = logging.getLogger("SERVER")
 
 class Server:
-    def __init__(self, host: str = "0.0.0.0", port: int = 8000):
+    def __init__(self, host: str = "0.0.0.0", port: int = 8080):
         self.host = host
         self.port = port
         self.thread = None

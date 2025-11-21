@@ -32,9 +32,18 @@ def main():
         log.exception("Erreur inattendue: " + str(e))
     finally:
         log.info("Arrêt des services...")
-        midi.stop()
-        renderer.stop()
-        server.stop()
+        try:
+            midi.stop()
+        except Exception as e:
+            log.warning(f"Erreur à l'arrêt du MIDI : {e}")
+        try:
+            renderer.stop()
+        except Exception as e:
+            log.warning(f"Erreur à l'arrêt du Renderer : {e}")
+        try:
+            server.stop()
+        except Exception as e:
+            log.warning(f"Erreur à l'arrêt du Server : {e}")
 
 if __name__ == "__main__":
     main()
