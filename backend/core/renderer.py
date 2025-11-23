@@ -2,7 +2,10 @@ import queue
 import time
 import logging
 import inspect
-from .leds import color_modes, effect_modes, LEDStrip
+
+# from .modes.color import color_modes
+# from .modes.effect import effect_modes
+from .leds import LEDStrip
 
 log = logging.getLogger("RENDERER")
 
@@ -71,7 +74,7 @@ class Renderer:
 
                 match msg.type:
                     case "note_on":
-                        color = self.colorMode.get_color(msg.note, msg.velocity)
+                        color = self.colorMode.get_color(msg)
 
                         if msg.note not in self.notes_state:
                             self.notes_state[msg.note] = {}

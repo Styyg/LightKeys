@@ -1,7 +1,7 @@
 import threading
 import uvicorn
 import logging
-from . import api
+from backend.api import app
 
 log = logging.getLogger("SERVER")
 
@@ -14,7 +14,7 @@ class Server:
 
     def set_renderer(self, renderer):
         """Associe un renderer au serveur."""
-        api.set_renderer(renderer)
+        app.set_renderer(renderer)
         
     def start(self):
         """Démarre le serveur FastAPI dans un thread séparé."""
@@ -29,7 +29,7 @@ class Server:
     
     def _run(self):
         log.debug(f"Lancement d'uvicorn sur {self.host}:{self.port}")
-        uvicorn.run(api.app, host=self.host, port=self.port)
+        uvicorn.run(app.app, host=self.host, port=self.port)
 
     def stop(self):
         """(Optionnel pour plus tard) Arrête proprement le serveur."""

@@ -1,4 +1,4 @@
-import { type Status } from "../hooks/useStatus"
+import { type Status } from "../../hooks/useStatus"
 
 export default function DashboardHeader({ status }: { status: Status | null }) {
   return (

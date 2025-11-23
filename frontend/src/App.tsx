@@ -1,20 +1,40 @@
-import DashboardHeader from "./components/DashboardHeader"
-import { useStatus } from "./hooks/useStatus"
-import './App.css'
+import { Routes, Route } from "react-router-dom";
+import { useState } from "react";
 
-function App() {
-  const status = useStatus()
+import Sidebar from "./components/Sidebar/Sidebar";
+import DashboardHeader from "./components/Header/DashboardHeader";
+import { useStatus } from "./hooks/useStatus";
+
+import Dashboard from "./pages/Dashboard";
+import ColorModes from "./pages/ColorModes";
+import EffectModes from "./pages/EffectModes";
+import LiveView from "./pages/LiveView";
+import AboutLogs from "./pages/AboutLogs";
+
+export default function App() {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const status = useStatus();
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white p-6">
-      <DashboardHeader status={status} />
+    <div className="flex h-screen bg-neutral-900 text-white">
+      
+      {/* SIDEBAR */}
+      <Sidebar open={sidebarOpen} toggle={() => setSidebarOpen(o => !o)} />
 
-      {/* Ici on ajoutera les panneaux ColorModes et EffectModes */}
-      <div className="text-neutral-400">
-        Interface en construction...
+      {/* MAIN */}
+      <div className="flex-1 p-4">
+        <DashboardHeader status={status} />
+
+        <div className="mt-4">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/color-modes" element={<ColorModes />} />
+            <Route path="/effect-modes" element={<EffectModes />} />
+            <Route path="/live-view" element={<LiveView />} />
+            <Route path="/about" element={<AboutLogs />} />
+          </Routes>
+        </div>
       </div>
     </div>
-  )
+  );
 }
-
-export default App
